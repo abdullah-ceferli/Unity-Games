@@ -2,15 +2,20 @@
 #
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
 #
-.utmp/
-/[Ll]ibrary/
-/[Tt]emp/
-/[Oo]bj/
-/[Bb]uild/
-/[Bb]uilds/
-/[Ll]ogs/
-/[Uu]ser[Ss]ettings/
-*.log
+Road-Ride/Road Ride/Library
+Road-Ride/Road Ride/Temp
+Road-Ride/Road Ride/Obj
+Road-Ride/Road Ride/Logs
+
+Speed-car/Speed Car/Library
+Speed-car/Speed Car/Temp
+Speed-car/Speed Car/Obj
+Speed-car/Speed Car/Logs
+
+StealaBrainrot/Steal a Brainrot/Library
+StealaBrainrot/Steal a Brainrot/Temp
+StealaBrainrot/Steal a Brainrot/Obj
+StealaBrainrot/Steal a Brainrot/Logs
 
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be commited to version control.
 *.blend1
