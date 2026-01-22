@@ -2,10 +2,6 @@
 #
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
 #
-Road-Ride/Road Ride/Library
-Road-Ride/Road Ride/Temp
-Road-Ride/Road Ride/Obj
-Road-Ride/Road Ride/Logs
 
 Speed-car/Speed Car/Library
 Speed-car/Speed Car/Temp
