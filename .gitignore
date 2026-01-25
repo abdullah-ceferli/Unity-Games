@@ -7,11 +7,18 @@ Speed-car/Speed Car/Library
 Speed-car/Speed Car/Temp
 Speed-car/Speed Car/Obj
 Speed-car/Speed Car/Logs
+Speed-car/MobileVersions
 
 StealaBrainrot/Steal a Brainrot/Library
 StealaBrainrot/Steal a Brainrot/Temp
 StealaBrainrot/Steal a Brainrot/Obj
 StealaBrainrot/Steal a Brainrot/Logs
+StealaBrainrot/exeVariants
+
+Tsunami Brainrot/Library
+Tsunami Brainrot/Temp
+Tsunami Brainrot/Obj
+Tsunami Brainrot/Logs
 
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be commited to version control.
 *.blend1
