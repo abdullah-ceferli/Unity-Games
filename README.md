@@ -1,4 +1,4 @@
-🎮 Steal a Brainrot / Speed Car / Road Ride – Unity Games
+🎮 Steal a Brainrot / Speed Car – Unity Games
 
 A collection of Unity games inspired by chaotic brainrot energy ⚡ and high-speed car gameplay 🚗
 These projects focus on fast action, simple mechanics, and fun arcade-style experiences.
