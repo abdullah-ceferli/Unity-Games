@@ -20,6 +20,11 @@ Tsunami Brainrot/Temp
 Tsunami Brainrot/Obj
 Tsunami Brainrot/Logs
 
+Pakur/Library
+Pakur/Temp
+Pakur/Obj
+Pakur/Logs
+
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be commited to version control.
 *.blend1
 *.blend1.meta
