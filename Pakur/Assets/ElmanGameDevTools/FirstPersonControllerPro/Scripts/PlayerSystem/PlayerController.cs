@@ -16,6 +16,11 @@ namespace ElmanGameDevTools.PlayerSystem
         [Tooltip("The Transform of the camera, usually a child of the player object.")]
         public Transform playerCamera;
 
+        [Header("CURSOR SETTINGS")]
+        public KeyCode cursorToggleKey = KeyCode.LeftShift;
+        // Tracks if the user intentionally toggled the "Menu Mode" on
+        private bool _isMenuModeActive = false;
+
         [Header("MOVEMENT SETTINGS")]
         public float speed = 6f;
         public float runSpeed = 9f;
@@ -95,7 +100,11 @@ namespace ElmanGameDevTools.PlayerSystem
         private void Start()
         {
             if (controller == null) controller = GetComponent<CharacterController>();
-            Cursor.lockState = CursorLockMode.Locked;
+
+            // Start with cursor locked (Gameplay mode)
+            _isMenuModeActive = false;
+            ApplyCursorState(true);
+
             _originalHeight = controller.height;
             _targetHeight = _originalHeight;
             _cameraBaseHeight = playerCamera.localPosition.y;
@@ -111,6 +120,8 @@ namespace ElmanGameDevTools.PlayerSystem
 
         private void Update()
         {
+            HandleCursorState();
+
             CheckGroundStatus();
             HandleCrouchLogic();
             UpdateMovementState();
@@ -123,9 +134,44 @@ namespace ElmanGameDevTools.PlayerSystem
             if (enableHeadBob) HandleHeadBob();
         }
 
-        /// <summary>
-        /// SphereCast based ground detection to ensure stability on slopes and stairs.
-        /// </summary>
+        private void HandleCursorState()
+        {
+            // 1. Toggle "Menu Mode" when pressing Shift
+            if (Input.GetKeyDown(cursorToggleKey))
+            {
+                _isMenuModeActive = !_isMenuModeActive;
+            }
+
+            // 2. Determine if the cursor should be locked right now
+            // IT SHOULD BE LOCKED IF:
+            // - We are NOT in menu mode (normal gameplay)
+            // - OR we ARE in menu mode, but holding Right Click (temporary look)
+            bool shouldBeLocked = !_isMenuModeActive || Input.GetMouseButton(1);
+
+            // 3. Apply the state
+            ApplyCursorState(shouldBeLocked);
+        }
+
+        private void ApplyCursorState(bool locked)
+        {
+            if (locked)
+            {
+                if (Cursor.lockState != CursorLockMode.Locked)
+                {
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Cursor.visible = false;
+                }
+            }
+            else
+            {
+                if (Cursor.lockState != CursorLockMode.None)
+                {
+                    Cursor.lockState = CursorLockMode.None;
+                    Cursor.visible = true;
+                }
+            }
+        }
+
         private void CheckGroundStatus()
         {
             Vector3 origin = transform.position + Vector3.up * controller.radius;
@@ -141,6 +187,14 @@ namespace ElmanGameDevTools.PlayerSystem
 
         private void UpdateMovementState()
         {
+            // NEW: If Menu is active, force Walking state (so we don't trigger run effects)
+            if (_isMenuModeActive)
+            {
+                _currentMovementState = MovementState.Walking;
+                _currentMovementSpeed = 0f; // Optional: visually helps logic
+                return;
+            }
+
             bool wantsToRun = Input.GetKey(runKey) && Input.GetAxis("Vertical") > 0.1f;
 
             if (!_isGrounded)
@@ -164,27 +218,39 @@ namespace ElmanGameDevTools.PlayerSystem
 
         private void HandleMovement()
         {
-            // Reverted to Input.GetAxis for smooth built-in interpolation
-            Vector3 moveInput = transform.right * Input.GetAxis("Horizontal") + transform.forward * Input.GetAxis("Vertical");
-            if (moveInput.magnitude > 1f) moveInput.Normalize();
+            Vector3 moveInput = Vector3.zero;
 
-            if (Input.GetButtonDown("Jump") && _isGrounded && !_isCrouching)
+            // NEW: Only read movement inputs if Menu Mode is NOT active
+            if (!_isMenuModeActive)
             {
-                _velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-                _hasJumped = true;
-                _isGrounded = false;
+                moveInput = transform.right * Input.GetAxis("Horizontal") + transform.forward * Input.GetAxis("Vertical");
+                if (moveInput.magnitude > 1f) moveInput.Normalize();
+
+                // Only allow jumping if Menu Mode is NOT active
+                if (Input.GetButtonDown("Jump") && _isGrounded && !_isCrouching)
+                {
+                    _velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                    _hasJumped = true;
+                    _isGrounded = false;
+                }
             }
 
             if (standingHeightMarker != null)
                 standingHeightMarker.transform.position = new Vector3(transform.position.x, transform.position.y + _markerHeightOffset, transform.position.z);
 
+            // Move character (moveInput will be zero if menu is active)
             controller.Move(moveInput * _currentMovementSpeed * Time.deltaTime);
+
+            // Gravity always applies (even in menu)
             _velocity.y += gravity * Time.deltaTime;
             controller.Move(_velocity * Time.deltaTime);
         }
 
         private void HandleCrouchLogic()
         {
+            // Optional: Block crouching in menu? 
+            // Currently keeping it enabled in case you need to duck while looking at a menu,
+            // but you can add '&& !_isMenuModeActive' if you want to block it too.
             _isCrouching = Input.GetKey(crouchKey) || !CanStandUp();
             _targetHeight = _isCrouching ? crouchHeight : _originalHeight;
         }
@@ -208,6 +274,12 @@ namespace ElmanGameDevTools.PlayerSystem
 
         private void HandleCameraControl()
         {
+            // MOVEMENT LOGIC:
+            // If Cursor is NOT locked, we usually stop camera.
+            // EXCEPT if the user is holding Right Click (Input.GetMouseButton(1)).
+            if (Cursor.lockState == CursorLockMode.None && !Input.GetMouseButton(1))
+                return;
+
             float mouseX = Input.GetAxis("Mouse X") * sensitivity;
             float mouseY = Input.GetAxis("Mouse Y") * sensitivity;
 
@@ -229,7 +301,9 @@ namespace ElmanGameDevTools.PlayerSystem
         {
             if (!enableCameraTilt) { _currentTilt = 0; return; }
 
-            float keyboardTilt = -Input.GetAxis("Horizontal") * tiltAmount;
+            // If in menu mode, don't tilt from keyboard input as we aren't moving
+            float keyboardTilt = _isMenuModeActive ? 0f : -Input.GetAxis("Horizontal") * tiltAmount;
+
             float mouseTilt = -_smoothInputX * turnTiltAmount;
             float targetTiltTotal = keyboardTilt + mouseTilt;
 
@@ -243,14 +317,22 @@ namespace ElmanGameDevTools.PlayerSystem
         private void HandleFovChange()
         {
             if (!enableRunFov || playerCamera.GetComponent<Camera>() == null) return;
-            bool isActuallyRunning = Input.GetKey(runKey) && Input.GetAxis("Vertical") > 0.1f;
+
+            // Cannot run if in Menu Mode
+            bool isActuallyRunning = !_isMenuModeActive && Input.GetKey(runKey) && Input.GetAxis("Vertical") > 0.1f;
+
             Camera cam = playerCamera.GetComponent<Camera>();
             cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, isActuallyRunning ? runFov : normalFov, Time.deltaTime * fovChangeSpeed);
         }
 
         private void HandleHeadBob()
         {
+            // If in menu mode, movement is zero, so magnitude will be zero, automatically stopping the bob.
             float moveMag = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")).magnitude;
+
+            // Force mag to 0 if menu is active (double safety)
+            if (_isMenuModeActive) moveMag = 0;
+
             float currentCamH = _cameraBaseHeight * (controller.height / _originalHeight);
 
             if (!_isGrounded || moveMag <= 0.1f)
@@ -271,10 +353,6 @@ namespace ElmanGameDevTools.PlayerSystem
             playerCamera.localPosition = Vector3.Lerp(playerCamera.localPosition, newPos, Time.deltaTime * bobSmoothness);
         }
 
-        /// <summary>
-        /// Checks for obstacles above the player when trying to stand up.
-        /// </summary>
-        /// <returns>True if there is enough space to stand.</returns>
         public bool CanStandUp()
         {
             if (standingHeightMarker == null) return true;
