@@ -15,15 +15,10 @@ StealaBrainrot/Steal a Brainrot/Obj
 StealaBrainrot/Steal a Brainrot/Logs
 StealaBrainrot/exeVariants
 
-Tsunami Brainrot/Library
-Tsunami Brainrot/Temp
-Tsunami Brainrot/Obj
-Tsunami Brainrot/Logs
-
-Pakur/Library
-Pakur/Temp
-Pakur/Obj
-Pakur/Logs
+Survival Land/Library
+Survival Land/Temp
+Survival Land/Obj
+Survival Land/Logs
 
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be commited to version control.
 *.blend1
