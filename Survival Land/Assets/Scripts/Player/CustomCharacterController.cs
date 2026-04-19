@@ -13,6 +13,7 @@ public class CustomCharacterController : MonoBehaviour
     public float runningSpeed = 6f;
     public float currentSpeed;
     private float animationInterpolation = 1f;
+    public bool isInventoryOpen = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -44,6 +45,10 @@ public class CustomCharacterController : MonoBehaviour
         // Устанавливаем поворот персонажа когда камера поворачивается 
         transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, mainCamera.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
 
+        if (!isInventoryOpen)
+        {
+            transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, mainCamera.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+        }
         // Зажаты ли кнопки W и Shift?
         if (Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.LeftShift))
         {
